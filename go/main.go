@@ -14,8 +14,8 @@ import (
 
 // Replace these with your actual API keys and secrets.
 const (
-	apiKey    = "your-saas-api-key"
-	apiSecret = "your-saas-api-secret"
+	apiKey    = "fr7iywqNxyPRTQQF4bES9qfznzufDWwd"
+	apiSecret = "w81aG2DZ$HtNBw%gZ1ylji3rs8MhBjjPBg?VKlBV5ul%8#i%M0uBwH#drE161TiXGJsSIvv%9ijnjUzfglnJRynY8ne110o@cVjadCJgIove3h#6$Fl?ypkjyKE#3guy"
 )
 
 type MyStruct struct {

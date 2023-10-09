@@ -1,8 +1,9 @@
 const crypto = require("crypto");
 
 // Replace these with your actual API keys and secrets.
-const apiKey = "your-saas-api-key";
-const apiSecret = "your-saas-api-secret";
+const apiKey = "fr7iywqNxyPRTQQF4bES9qfznzufDWwd";
+const apiSecret =
+  "w81aG2DZ$HtNBw%gZ1ylji3rs8MhBjjPBg?VKlBV5ul%8#i%M0uBwH#drE161TiXGJsSIvv%9ijnjUzfglnJRynY8ne110o@cVjadCJgIove3h#6$Fl?ypkjyKE#3guy";
 
 const createSignature = (method, path, body) => {
   // Define the request body (if applicable).
