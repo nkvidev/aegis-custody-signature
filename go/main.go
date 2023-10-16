@@ -1,10 +1,14 @@
 package main
 
 import (
-	"crypto/hmac"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
-	"encoding/hex"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,18 +18,59 @@ import (
 
 // Replace these with your actual API keys and secrets.
 const (
-	apiKey    = "fr7iywqNxyPRTQQF4bES9qfznzufDWwd"
-	apiSecret = "w81aG2DZ$HtNBw%gZ1ylji3rs8MhBjjPBg?VKlBV5ul%8#i%M0uBwH#drE161TiXGJsSIvv%9ijnjUzfglnJRynY8ne110o@cVjadCJgIove3h#6$Fl?ypkjyKE#3guy"
+	apiKey     = "ZqyrjFE8DgCT"
+	privateKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAoZPMGY90ek4OzQ7FvS7cPnJNECPvRNpaKJDPSPiHmWLFqo52
+ZvMYQu9c3r2AjT4VFVJaJoN/qGlruq56ckUGhLp9e/rfv+Q4TtxX8PHjpG5hs7Ft
+wV+UVg7W5EGshT8qrHtWdN1DmSg03ZfKIGFSI95179K6tnflpAbtZtvFknM0/ECP
+eXAkPCbF7b2/Xv1MkyV/o/QBeumES4rGF7RnBdlTBPeUBZnUPELgsnI8TxTMjeGP
+BNrj6R1rCbLh7l6p09lx1/KotZMgtNsGFtuJlhaw5sYhoFvyYeiUpFLpU6vtcuCJ
+N5SGtNYl4MOoNasM7Mb3XVVSdO0xiwUhZDvfSwIDAQABAoIBAGdAAeGniSAKt2yT
+7wooYrdI5TPWMrTF720StFMF9eivdG674K+C0lMbkDYJ1JbtQB3C5TbNOwtMann9
+uuNAdpzkawGJ2+dMmCrUpSGkAPr3SlnAnMlAIZMoomt0CCGRrtxPaHz/U44QYk/k
+ClbMueeP5b9d4tBtJ4K8poHfGI6vKg1yzCwpkU8XhkKmFlJZOf4APqYnfjQn9mqI
+xYMJVjvJEi0hiMd0kbxV6vg1UxdeasLiyzouBHn940+l4xDbZ1VXz6M6GR5Xhrjp
+v8QesIxk4hokA/g5D9RwwER3TdoN90sgzdFeUdKTUeFmvCkz7lD9zpIxHHLf1grw
+FATMVjkCgYEAzios5G4ibWaY34H/4qi2cvCCXGpRSVx/VNzS00Rrkxd5oBbcJmml
+qpELEqQ3ZevGdkpJIRCd3TPrln/4+Nbb1fXITvCTkQ7TJi0P8/JWUMczmg4VqLwf
+nDgcfz3nzWBwpRjQPHD4uFhv7msfPp6PQ4VN103YVd05CvcDxAdbu7cCgYEAyKJ6
+HA15qBYCWpN/W8PRyXi2wYCwxT03ZwBZk/3kV9uftPI0W15XGRqESXkl2zgMYng0
+kC4YUhXUmF8/L0G2Frs5CogZJBUL1SQ+HEwBsZqIs53NtZWmEfiruVVH1Hn7/PFx
+EQ7vXIjCZUbskKn6dNCn+58vVl2w58BtOeclYQ0CgYA8PqjVq7VVwMhlb+ilhGWk
+WtHNTagpRuVSmCDnabQBzLdW57c3ZmHp4O6aaPBjUS2yfWy3Q9LNxBFQ7l6D4M1m
+zabWIokMt4dOPZbO038TpdJXb0w2/ZpDHUZ+jEmDg24HYKPhNaYIwJcc1aLQuqbk
+tTyU8QOJu9aidKJeE0RkKwKBgBohz3XH64iRFU1m2LfDEZgEOQmLEXsfNhAcY457
+CzrGSE7xHRCpgP6sDX7kYKHk8vgAYBhHaLOIVGBkR36IOIdNa2iLwXqJozjnt49H
+9xCC6Ds82oZEL5U3pmZFTU3HdaLEb82g/Fw5E9jNHBLbkNuWMcr8ONYu7dPBpHhe
+OughAoGBAMwMlD8EhDVzXZrgOsJM+8mODQaO7p1mGhnIHMVEZKEFHoBY9DrWChPu
+crU11mL2TBLCMT49pyd+XArK9mNBPwxHDj7rJZkQAcn7AKw2M/dxdZroev4JGsKf
+yOUJggU3NbOjNMuJQL8JtU5lXV/mNpZpfbQdj1d2CZNJaR/wDM1g
+-----END RSA PRIVATE KEY-----`
 )
 
 type MyStruct struct {
 	Key string `json:"key"`
 }
 
+func privateKeyFromPEM(privateKeyPEM string) (*rsa.PrivateKey, error) {
+	// Parse the PEM-encoded private key
+	block, _ := pem.Decode([]byte(privateKeyPEM))
+	if block == nil {
+		return nil, fmt.Errorf("failed to parse PEM block containing the private key")
+	}
+
+	// Parse the RSA private key
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return privateKey, nil
+}
+
 func createSignature(req *http.Request, httpMethod string, requestBody string) {
 	// Create a timestamp for the request.
 	timestamp := time.Now().Unix()
-
 	// Generate a nonce (random string) for each request.
 	nonce := generateNonce()
 
@@ -34,11 +79,8 @@ func createSignature(req *http.Request, httpMethod string, requestBody string) {
 	// Define the request body (if applicable).
 	path := "/test"
 	// Create a string to sign based on your API requirements.
-	stringToSign := fmt.Sprintf("%s%d%s%s%s%s", apiKey, timestamp, nonce, path, httpMethod, requestBody)
-
-	// Create an HMAC-SHA256 signature using your API secret.
-	signature := calculateSignature(apiSecret, stringToSign)
-
+	message := []byte(fmt.Sprintf("%s%d%s%s%s%s", apiKey, timestamp, nonce, path, httpMethod, requestBody))
+	signature, _ := signData(message)
 	// Set the request headers with API key, timestamp, nonce, and signature.
 	req.Header.Set("X-Aegis-Api-Key", apiKey)
 	req.Header.Set("X-Aegis-Api-Timestamp", fmt.Sprintf("%d", timestamp))
@@ -59,7 +101,7 @@ func main() {
 	myData := MyStruct{
 		Key: "value",
 	}
-	jsonData, err := json.Marshal(myData)
+	jsonData, _ := json.Marshal(myData)
 	requestBody := string(jsonData)
 	// Create an HTTP request.
 	getReq, err := http.NewRequest(httpMethod, apiURL, strings.NewReader(requestBody))
@@ -90,8 +132,19 @@ func generateNonce() string {
 	return fmt.Sprintf("%d", time.Now().UnixNano())
 }
 
-func calculateSignature(secret, dataToSign string) string {
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write([]byte(dataToSign))
-	return hex.EncodeToString(mac.Sum(nil))
+func signData(message []byte) (string, error) {
+	privateKey, _ := privateKeyFromPEM(privateKey)
+
+	opts := &rsa.PSSOptions{
+		SaltLength: rsa.PSSSaltLengthAuto,
+		Hash:       crypto.SHA256,
+	}
+	hashed := sha256.Sum256(message)
+	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, hashed[:], opts)
+	if err != nil {
+		return "", err
+	}
+
+	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
+	return signatureBase64, nil
 }

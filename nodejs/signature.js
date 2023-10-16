@@ -2,8 +2,15 @@ const crypto = require("crypto");
 
 // Replace these with your actual API keys and secrets.
 const apiKey = "fr7iywqNxyPRTQQF4bES9qfznzufDWwd";
-const apiSecret =
-  "w81aG2DZ$HtNBw%gZ1ylji3rs8MhBjjPBg?VKlBV5ul%8#i%M0uBwH#drE161TiXGJsSIvv%9ijnjUzfglnJRynY8ne110o@cVjadCJgIove3h#6$Fl?ypkjyKE#3guy";
+const apiSecret = `MIIEowIBAAKCAQEA0/rmU/7Zr0jvIS1ICkKLi53VsVoTqOLO/ESXv/vT6v9dZcs0
+  mNQAE+wWIs3I3qRlKYP3pSZqMv5gZCm01K64egClwBv5/SfOgqJ4eUVbhWk3J0p/
+  K7ID4S2sR0PcPDtVvDC3IzLbs5t4ACZ9m4AQTgNQdfg4sQ4gMcP21I7Nu0ssVX9J
+  6TdqAZzmHQWYhy0h3EN3RSO8JNUFkQRHwtbL9w0+DLx7iIwJX1yPQFy/tiQfQzvQ
+  NTVx5Grv5M7FUVn0tjH6I5pYCLZ9CDjtAulBDpVov+rG1z0hqVsEPiDl5VRjo6TM
+  zKSqwIoA0v2aY8S1U4F/Kon4N2rWDEYcGVdYImgQIDAQABAoIBACFhJquBQeJ6B2M
+  DmvAcnXs3s1V0vneXjMTEl4/KGf+Q5R6uRRz+rN8q9eQT1yqufq3OwNrIzzr/HXZ
+  ULo+AAkNoaZQR1T3r/bpN4eb9hr/ul7tsBp+lT6qSgJz6A1LyPezVKL1NEXyLXXa
+  XtPxCTrwxYrsg8W/zV3SSMKdsz0w4k8`;
 
 const createSignature = (method, path, body) => {
   // Define the request body (if applicable).
