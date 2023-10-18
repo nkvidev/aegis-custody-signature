@@ -68,7 +68,7 @@ func privateKeyFromPEM(privateKeyPEM string) (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func createSignature(req *http.Request, httpMethod string, requestBody string) {
+func createSignature(req *http.Request, httpMethod string, requestBody string, path string) (string, int64, string, string) {
 	// Create a timestamp for the request.
 	timestamp := time.Now().Unix()
 	// Generate a nonce (random string) for each request.
@@ -76,19 +76,38 @@ func createSignature(req *http.Request, httpMethod string, requestBody string) {
 
 	// Define the HTTP method (GET, POST, etc.).
 
-	// Define the request body (if applicable).
-	path := "/test"
 	// Create a string to sign based on your API requirements.
 	message := []byte(fmt.Sprintf("%s%d%s%s%s%s", apiKey, timestamp, nonce, path, httpMethod, requestBody))
 	signature, _ := signData(message)
 	// Set the request headers with API key, timestamp, nonce, and signature.
-	req.Header.Set("X-Aegis-Api-Key", apiKey)
-	req.Header.Set("X-Aegis-Api-Timestamp", fmt.Sprintf("%d", timestamp))
-	req.Header.Set("X-Aegis-Api-Nonce", nonce)
-	req.Header.Set("X-Aegis-Api-Signature", signature)
-	req.Header.Set("Content-Type", "application/json") // Set the appropriate content type.
-
+	return signature, timestamp, nonce, path
 }
+
+// func main() {
+// 	// Replace with your RSA public key
+// 	publicKeyPEM := `-----BEGIN RSA PUBLIC KEY-----
+// MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0sFIxMIQLCQMdGEL6C7u
+// KEjtWb2zbBf8UOZLaFDc90zay+nOJC8uDVsPtVYr7DBuqGpQzuqn1ZCl0J/SHesb
+// ye9OPJzldrYotQvYSXovhrnbdPip6zvbrCg37SRVzgumXVpzyfArk9ETrxaah3Np
+// izj3TRl+J6O7mylsgZHRKdPxYFsGNKN32xJBGNlGc5LABY9MqyNLQygriJ4qYiub
+// qqzVlxo+t6oDdWBQa4d3Oae9H0Jy94du2louVPoke3pkbHuDpgsBY4AE6gr3ytzz
+// mQTLqlKKVncDjDJkwZ9ue/r0lVYR/Jh+p2mzmKlF+sN8kqLDX9yBJbEOCjcYaljm
+// uwIDAQAB
+// -----END RSA PUBLIC KEY-----
+// `
+
+// 	// Remove newline characters from the input data
+// 	// publicKeyPEM = strings.ReplaceAll(publicKeyPEM, "\n", "")
+// 	fmt.Println("pubPEM", []byte(publicKeyPEM))
+
+// 	// Calculate the SHA-256 hash of the modified input data
+// 	sha256Hash := sha256.Sum256([]byte(publicKeyPEM))
+
+// 	// Convert the SHA-256 hash to a hexadecimal string
+// 	hashString := hex.EncodeToString(sha256Hash[:])
+
+// 	fmt.Println("SHA-256 Hash: ", hashString)
+// }
 
 func main() {
 	// Define the API endpoint you want to call.
@@ -109,7 +128,14 @@ func main() {
 		fmt.Printf("Error creating request: %v\n", err)
 		return
 	}
-	createSignature(getReq, httpMethod, requestBody)
+	signature, timestamp, nonce, _ := createSignature(getReq, httpMethod, requestBody, "/test")
+
+	getReq.Header.Set("X-Aegis-Api-Key", apiKey)
+	getReq.Header.Set("X-Aegis-Api-Timestamp", fmt.Sprintf("%d", timestamp))
+	getReq.Header.Set("X-Aegis-Api-Nonce", nonce)
+	getReq.Header.Set("X-Aegis-Api-Signature", signature)
+	getReq.Header.Set("Content-Type", "application/json") // Set the appropriate content type.
+
 	// Send the HTTP request.
 	resp, err := client.Do(getReq)
 	if err != nil {
